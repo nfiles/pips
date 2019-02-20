@@ -1,0 +1,7 @@
+[package]
+name = "pips"
+version = "0.1.0"
+authors = ["rdafiles"]
+edition = "2018"
+
+[dependencies]
