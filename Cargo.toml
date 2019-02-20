@@ -1,7 +1,8 @@
 [package]
 name = "pips"
 version = "0.1.0"
-authors = ["rdafiles"]
+authors = ["nfiles"]
 edition = "2018"
 
 [dependencies]
+rand = "0.6.5"
