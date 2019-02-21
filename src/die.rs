@@ -1,7 +1,7 @@
 use rand::Rng;
 use std::collections::HashMap;
 
-use super::traits::Rollable;
+use crate::traits::Rollable;
 
 pub struct Die {
     max: i32,
@@ -25,5 +25,24 @@ impl Rollable for Die {
     fn plot(&self) -> HashMap<i32, i32> {
         // a single die has an equal chance to roll any of its sides
         (1..self.max).map(|i| (i, 1)).collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashSet;
+
+    #[test]
+    fn dice_roll_expected_numbers() {
+        let max = 6;
+        let expected_outputs = 1..max;
+        let die = Die::new(max);
+
+        let actual: HashSet<i32> = (1..100).map(|_| die.roll()).collect();
+
+        for i in expected_outputs {
+            assert!(actual.contains(&i))
+        }
     }
 }
