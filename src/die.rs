@@ -36,12 +36,12 @@ mod tests {
     #[test]
     fn dice_roll_expected_numbers() {
         let max = 6;
-        let expected_outputs = 1..max;
+        let num_rolls = 100;
         let die = Die::new(max);
 
-        let actual: HashSet<i32> = (1..100).map(|_| die.roll()).collect();
+        let actual: HashSet<i32> = (1..num_rolls).map(|_| die.roll()).collect();
 
-        for i in expected_outputs {
+        for i in 1..max {
             assert!(actual.contains(&i))
         }
     }
