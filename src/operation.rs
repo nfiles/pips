@@ -3,15 +3,17 @@ use std::collections::HashMap;
 use crate::operators::{advantage, disadvantage, multiply, sum};
 use crate::traits::Rollable;
 
-pub struct Expression {
+type BinaryOperator = fn(left: &i32, right: &i32) -> i32;
+
+pub struct Operation {
     left: Box<dyn Rollable>,
     right: Box<dyn Rollable>,
-    combinator: fn(left: &i32, right: &i32) -> i32,
+    combinator: BinaryOperator,
 }
 
-impl Expression {
+impl Operation {
     pub fn sum(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
-        Box::new(Expression {
+        Box::new(Operation {
             left,
             right,
             combinator: sum,
@@ -19,7 +21,7 @@ impl Expression {
     }
 
     pub fn multiply(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
-        Box::new(Expression {
+        Box::new(Operation {
             left,
             right,
             combinator: multiply,
@@ -27,7 +29,7 @@ impl Expression {
     }
 
     pub fn advantage(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
-        Box::new(Expression {
+        Box::new(Operation {
             left,
             right,
             combinator: advantage,
@@ -35,7 +37,7 @@ impl Expression {
     }
 
     pub fn disadvantage(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
-        Box::new(Expression {
+        Box::new(Operation {
             left,
             right,
             combinator: disadvantage,
@@ -43,7 +45,7 @@ impl Expression {
     }
 }
 
-impl Rollable for Expression {
+impl Rollable for Operation {
     fn roll(&self) -> i32 {
         (self.combinator)(&self.left.roll(), &self.right.roll())
     }
@@ -78,7 +80,7 @@ mod tests {
 
     #[test]
     fn multiply_produces_correct_plot() {
-        let expression = Expression::multiply(Box::new(Die::new(4)), Box::new(Die::new(4)));
+        let operation = Operation::multiply(Box::new(Die::new(4)), Box::new(Die::new(4)));
         let expected: HashMap<i32, i32> = [
             (1, 1),
             (2, 2),
@@ -94,14 +96,14 @@ mod tests {
         .cloned()
         .collect();
 
-        let actual = expression.plot();
+        let actual = operation.plot();
 
         assert_eq!(expected, actual);
     }
 
     #[test]
     fn two_d6_sum_produces_correct_plot() {
-        let expression = Expression::sum(Box::new(Die::new(6)), Box::new(Die::new(6)));
+        let operation = Operation::sum(Box::new(Die::new(6)), Box::new(Die::new(6)));
         let expected: HashMap<i32, i32> = [
             (2, 1),
             (3, 2),
@@ -119,14 +121,14 @@ mod tests {
         .cloned()
         .collect();
 
-        let actual = expression.plot();
+        let actual = operation.plot();
 
         assert_eq!(expected, actual);
     }
 
     #[test]
     fn advantage_produces_correct_plot() {
-        let expression = Expression::advantage(Box::new(Die::new(4)), Box::new(Die::new(4)));
+        let operation = Operation::advantage(Box::new(Die::new(4)), Box::new(Die::new(4)));
         // 1 1 -> 1
         // 1 2 -> 2
         // 1 3 -> 3
@@ -146,14 +148,14 @@ mod tests {
         let expected: HashMap<i32, i32> =
             [(1, 1), (2, 3), (3, 5), (4, 7)].iter().cloned().collect();
 
-        let actual = expression.plot();
+        let actual = operation.plot();
 
         assert_eq!(expected, actual);
     }
 
     #[test]
     fn disadvantage_produces_correct_plot() {
-        let expression = Expression::disadvantage(Box::new(Die::new(4)), Box::new(Die::new(4)));
+        let operation = Operation::disadvantage(Box::new(Die::new(4)), Box::new(Die::new(4)));
         // 1 1 -> 1
         // 1 2 -> 1
         // 1 3 -> 1
@@ -173,7 +175,7 @@ mod tests {
         let expected: HashMap<i32, i32> =
             [(1, 7), (2, 5), (3, 3), (4, 1)].iter().cloned().collect();
 
-        let actual = expression.plot();
+        let actual = operation.plot();
 
         assert_eq!(expected, actual);
     }
