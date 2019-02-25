@@ -8,7 +8,7 @@ type BinaryOperator = fn(left: &i32, right: &i32) -> i32;
 pub struct Operation {
     left: Box<dyn Rollable>,
     right: Box<dyn Rollable>,
-    combinator: BinaryOperator,
+    operator: BinaryOperator,
 }
 
 impl Operation {
@@ -16,7 +16,7 @@ impl Operation {
         Box::new(Operation {
             left,
             right,
-            combinator: sum,
+            operator: sum,
         })
     }
 
@@ -24,7 +24,7 @@ impl Operation {
         Box::new(Operation {
             left,
             right,
-            combinator: multiply,
+            operator: multiply,
         })
     }
 
@@ -32,7 +32,7 @@ impl Operation {
         Box::new(Operation {
             left,
             right,
-            combinator: advantage,
+            operator: advantage,
         })
     }
 
@@ -40,7 +40,7 @@ impl Operation {
         Box::new(Operation {
             left,
             right,
-            combinator: disadvantage,
+            operator: disadvantage,
         })
     }
 
@@ -48,14 +48,14 @@ impl Operation {
         Box::new(Operation {
             left,
             right,
-            combinator: compare,
+            operator: compare,
         })
     }
 }
 
 impl Rollable for Operation {
     fn roll(&self) -> i32 {
-        (self.combinator)(&self.left.roll(), &self.right.roll())
+        (self.operator)(&self.left.roll(), &self.right.roll())
     }
 
     fn plot(&self) -> HashMap<i32, i32> {
@@ -67,7 +67,7 @@ impl Rollable for Operation {
         left.iter()
             .flat_map(|(left_value, left_count)| {
                 right.iter().map(move |(right_value, right_count)| {
-                    let value = (self.combinator)(left_value, right_value);
+                    let value = (self.operator)(left_value, right_value);
                     (value, left_count * right_count)
                 })
             })
