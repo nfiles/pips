@@ -21,3 +21,13 @@ pub fn disadvantage(left: &i32, right: &i32) -> i32 {
         *right
     }
 }
+
+pub fn compare(left: &i32, right: &i32) -> i32 {
+    if *left > *right {
+        1
+    } else if *left == *right {
+        0
+    } else {
+        -1
+    }
+}

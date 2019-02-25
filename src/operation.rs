@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::operators::{advantage, disadvantage, multiply, sum};
+use crate::operators::{advantage, compare, disadvantage, multiply, sum};
 use crate::traits::Rollable;
 
 type BinaryOperator = fn(left: &i32, right: &i32) -> i32;
@@ -41,6 +41,14 @@ impl Operation {
             left,
             right,
             combinator: disadvantage,
+        })
+    }
+
+    pub fn compare(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
+        Box::new(Operation {
+            left,
+            right,
+            combinator: compare,
         })
     }
 }
@@ -174,6 +182,23 @@ mod tests {
         // 4 4 -> 4
         let expected: HashMap<i32, i32> =
             [(1, 7), (2, 5), (3, 3), (4, 1)].iter().cloned().collect();
+
+        let actual = operation.plot();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn contest_produces_correct_plot() {
+        let operation = Operation::compare(Box::new(Die::new(2)), Box::new(Die::new(3)));
+
+        // 1 1 -> 0
+        // 1 2 -> -1
+        // 1 3 -> -1
+        // 2 1 -> 1
+        // 2 2 -> 0
+        // 2 3 -> -1
+        let expected: HashMap<i32, i32> = [(-1, 3), (0, 2), (1, 1)].iter().cloned().collect();
 
         let actual = operation.plot();
 

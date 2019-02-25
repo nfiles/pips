@@ -1,4 +1,3 @@
-pub mod comparison;
 pub mod constant;
 pub mod die;
 pub mod operation;
