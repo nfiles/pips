@@ -5,4 +5,5 @@ authors = ["nfiles"]
 edition = "2018"
 
 [dependencies]
+nom = "4.2.0"
 rand = "0.6.5"

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::traits::Rollable;
 
+#[derive(Clone)]
 pub struct Constant {
     num: i32,
 }
