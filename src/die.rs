@@ -3,28 +3,25 @@ use std::collections::HashMap;
 
 use crate::traits::Rollable;
 
+#[derive(Clone)]
 pub struct Die {
-    max: i32,
+    max: u32,
 }
 
 impl Die {
-    pub fn new(max: i32) -> Die {
-        if max <= 0 {
-            panic!("max is invalid")
-        }
-
+    pub fn new(max: u32) -> Die {
         Die { max }
     }
 }
 
 impl Rollable for Die {
     fn roll(&self) -> i32 {
-        rand::thread_rng().gen_range(1, self.max + 1)
+        rand::thread_rng().gen_range(1, self.max as i32 + 1)
     }
 
     fn plot(&self) -> HashMap<i32, i32> {
         // a single die has an equal chance to roll any of its sides
-        (1..self.max + 1).map(|i| (i, 1)).collect()
+        (1..self.max as i32 + 1).map(|i| (i, 1)).collect()
     }
 }
 
@@ -38,7 +35,7 @@ mod tests {
         let max = 6;
         let num_rolls = 100;
         let die = Die::new(max);
-        let expected: HashSet<_> = (1..max + 1).collect();
+        let expected: HashSet<_> = [1, 2, 3, 4, 5, 6].iter().cloned().collect();
 
         let actual: HashSet<_> = (1..num_rolls).map(|_| die.roll()).collect();
 
