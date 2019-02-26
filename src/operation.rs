@@ -1,73 +1,92 @@
+use rand::Rng;
 use std::collections::HashMap;
 
-use crate::operators::{advantage, compare, disadvantage, multiply, sum};
-use crate::traits::Rollable;
+use crate::operators::{advantage, compare, disadvantage, multiply, sum, BinaryOperator};
 
-type BinaryOperator = fn(left: &i32, right: &i32) -> i32;
+#[derive(Clone)]
+pub enum Expression<'a> {
+    Die(i32),
+    Constant(i32),
 
-pub struct Operation {
-    left: Box<dyn Rollable>,
-    right: Box<dyn Rollable>,
-    operator: BinaryOperator,
+    Sum(&'a Expression<'a>, &'a Expression<'a>),
+    Multiply(&'a Expression<'a>, &'a Expression<'a>),
+    Advantage(&'a Expression<'a>),
+    Disadvantage(&'a Expression<'a>),
+    Compare(&'a Expression<'a>, &'a Expression<'a>),
 }
 
-impl Operation {
-    pub fn sum(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
-        Box::new(Operation {
-            left,
-            right,
-            operator: sum,
-        })
+use Expression::*;
+
+impl<'a> Expression<'a> {
+    pub fn roll(&self) -> i32 {
+        match self {
+            Constant(num) => *num,
+            Die(num) => rand::thread_rng().gen_range(1, num + 1),
+
+            Sum(left, right) => left.roll() + right.roll(),
+            Multiply(left, right) => left.roll() * right.roll(),
+            Advantage(expr) => {
+                let left = expr.roll();
+                let right = expr.roll();
+                if left > right {
+                    left
+                } else {
+                    right
+                }
+            }
+            Disadvantage(expr) => {
+                let left = expr.roll();
+                let right = expr.roll();
+                if left < right {
+                    left
+                } else {
+                    right
+                }
+            }
+            Compare(left, right) => {
+                let left = left.roll();
+                let right = right.roll();
+                if left > right {
+                    1
+                } else if left == right {
+                    0
+                } else {
+                    -1
+                }
+            }
+        }
     }
 
-    pub fn multiply(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
-        Box::new(Operation {
-            left,
-            right,
-            operator: multiply,
-        })
-    }
+    pub fn plot(&self) -> HashMap<i32, i32> {
+        // get the root cases out of the way
+        if let Constant(num) = self {
+            return [(*num, 1)].iter().cloned().collect();
+        }
+        if let Die(num) = self {
+            return (1..num + 1).map(|i| (i, 1)).collect();
+        }
 
-    pub fn advantage(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
-        Box::new(Operation {
-            left,
-            right,
-            operator: advantage,
-        })
-    }
+        // handle the more complicated expressions
+        let (operator, left, right): (BinaryOperator, _, _) = match self {
+            Sum(left, right) => (sum, left, right),
+            Multiply(left, right) => (multiply, left, right),
+            Advantage(expr) => (advantage, expr, expr),
+            Disadvantage(expr) => (disadvantage, expr, expr),
+            Compare(left, right) => (compare, left, right),
 
-    pub fn disadvantage(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
-        Box::new(Operation {
-            left,
-            right,
-            operator: disadvantage,
-        })
-    }
+            Constant(_) => panic!("this should never happen"),
+            Die(_) => panic!("this should never happen"),
+        };
 
-    pub fn compare(left: Box<dyn Rollable>, right: Box<dyn Rollable>) -> Box<dyn Rollable> {
-        Box::new(Operation {
-            left,
-            right,
-            operator: compare,
-        })
-    }
-}
-
-impl Rollable for Operation {
-    fn roll(&self) -> i32 {
-        (self.operator)(&self.left.roll(), &self.right.roll())
-    }
-
-    fn plot(&self) -> HashMap<i32, i32> {
-        let left = self.left.plot();
-        let right = self.right.plot();
+        let left = left.plot();
+        let right = right.plot();
 
         let mut product: HashMap<i32, i32> = HashMap::new();
 
         left.iter()
             .flat_map(|(left_value, left_count)| {
                 right.iter().map(move |(right_value, right_count)| {
-                    let value = (self.operator)(left_value, right_value);
+                    let value = (operator)(left_value, right_value);
                     (value, left_count * right_count)
                 })
             })
@@ -84,11 +103,9 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
 
-    use crate::die::Die;
-
     #[test]
     fn multiply_produces_correct_plot() {
-        let operation = Operation::multiply(Box::new(Die::new(4)), Box::new(Die::new(4)));
+        let operation = Expression::Multiply(&Expression::Die(4), &Expression::Die(4));
         let expected: HashMap<i32, i32> = [
             (1, 1),
             (2, 2),
@@ -111,7 +128,7 @@ mod tests {
 
     #[test]
     fn two_d6_sum_produces_correct_plot() {
-        let operation = Operation::sum(Box::new(Die::new(6)), Box::new(Die::new(6)));
+        let operation = Expression::Sum(&Expression::Die(6), &Expression::Die(6));
         let expected: HashMap<i32, i32> = [
             (2, 1),
             (3, 2),
@@ -136,7 +153,7 @@ mod tests {
 
     #[test]
     fn advantage_produces_correct_plot() {
-        let operation = Operation::advantage(Box::new(Die::new(4)), Box::new(Die::new(4)));
+        let operation = Expression::Advantage(&Expression::Die(4));
         // 1 1 -> 1
         // 1 2 -> 2
         // 1 3 -> 3
@@ -163,7 +180,7 @@ mod tests {
 
     #[test]
     fn disadvantage_produces_correct_plot() {
-        let operation = Operation::disadvantage(Box::new(Die::new(4)), Box::new(Die::new(4)));
+        let operation = Expression::Disadvantage(&Expression::Die(4));
         // 1 1 -> 1
         // 1 2 -> 1
         // 1 3 -> 1
@@ -190,7 +207,7 @@ mod tests {
 
     #[test]
     fn contest_produces_correct_plot() {
-        let operation = Operation::compare(Box::new(Die::new(2)), Box::new(Die::new(3)));
+        let operation = Expression::Compare(&Expression::Die(2), &Expression::Die(3));
 
         // 1 1 -> 0
         // 1 2 -> -1

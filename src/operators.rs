@@ -1,3 +1,5 @@
+pub type BinaryOperator = fn(left: &i32, right: &i32) -> i32;
+
 pub fn sum(left: &i32, right: &i32) -> i32 {
     (*left) + (*right)
 }
