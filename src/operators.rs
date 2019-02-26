@@ -1,13 +1,17 @@
+/// An operator that performs some logic on two inputs
 pub type BinaryOperator = fn(left: &i32, right: &i32) -> i32;
 
+/// Find the sum of two rolls
 pub fn sum(left: &i32, right: &i32) -> i32 {
     (*left) + (*right)
 }
 
+/// Multiple two rolls
 pub fn multiply(left: &i32, right: &i32) -> i32 {
     (*left) * (*right)
 }
 
+/// Take the greater of two rolls
 pub fn advantage(left: &i32, right: &i32) -> i32 {
     if *left > *right {
         *left
@@ -16,6 +20,7 @@ pub fn advantage(left: &i32, right: &i32) -> i32 {
     }
 }
 
+/// Take the lesser of two rolls
 pub fn disadvantage(left: &i32, right: &i32) -> i32 {
     if *left < *right {
         *left
@@ -24,6 +29,12 @@ pub fn disadvantage(left: &i32, right: &i32) -> i32 {
     }
 }
 
+/// Compare two rolls
+///
+/// returns:
+/// - `1` if left is greater than right
+/// - `0` if left is equal to right
+/// - `-1` if left is less than right
 pub fn compare(left: &i32, right: &i32) -> i32 {
     if *left > *right {
         1
