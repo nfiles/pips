@@ -7,7 +7,7 @@ use crate::operators::{advantage, compare, disadvantage, multiply, sum, BinaryOp
 use crate::traits::Rollable;
 
 /// Represents a dice roll expression
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Expression<'a> {
     Die(i32),
     Constant(i32),
