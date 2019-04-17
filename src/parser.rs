@@ -57,9 +57,23 @@ named!(
 named!(
     parse_die<CompleteStr, Expression>,
     do_parse!(
-        tag!("d") >>
+        ws!(tag!("d")) >>
         num: parse_unsigned_number >>
         (Die(num as i32))
+    )
+);
+
+named!(
+    parse_parens<CompleteStr, Expression>,
+    ws!(delimited!(tag!("("), parse_expression, tag!(")")))
+);
+
+named!(
+    parse_expression<CompleteStr, Expression>,
+    alt_complete!(
+        parse_parens |
+        parse_die |
+        parse_constant
     )
 );
 
@@ -69,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_parse_number_success() {
-        let cases: Vec<(&str, i32)> = vec![
+        let cases = vec![
             ("-999999999", -999999999),
             ("-1234", -1234),
             ("---10", -10),
@@ -85,8 +99,9 @@ mod tests {
         ];
 
         for (input, expected) in cases {
-            let result = parse_signed_number(input.into());
-            assert_eq!(result, Ok(("".into(), expected)));
+            let actual = parse_signed_number(input.into());
+            let (_, actual) = actual.unwrap();
+            assert_eq!(actual, expected);
         }
     }
 
@@ -94,14 +109,15 @@ mod tests {
     fn test_parse_constant() {
         let cases = vec![
             ("4", Constant(4)),
-            ("  5", Constant(5)),
-            ("\n\t --10", Constant(10)),
-            ("\n\t ---10", Constant(-10)),
+            ("  5  ", Constant(5)),
+            ("\n\t --10  ", Constant(10)),
+            ("\n\t ---10  ", Constant(-10)),
         ];
 
         for (input, expected) in cases {
             let actual = parse_constant(input.into());
-            assert_eq!(actual, Ok(("".into(), expected)));
+            let (_, actual) = actual.unwrap();
+            assert_eq!(actual, expected);
         }
     }
 
@@ -109,15 +125,49 @@ mod tests {
     fn test_parse_die() {
         let cases = vec![
             ("d4", Die(4)),
-            ("d6", Die(6)),
-            ("d10", Die(10)),
-            ("d12", Die(12)),
-            ("d20", Die(20)),
+            ("  d6", Die(6)),
+            (" d10", Die(10)),
+            ("\nd12", Die(12)),
+            ("\td20  ", Die(20)),
         ];
 
         for (input, expected) in cases {
             let actual = parse_die(input.into());
-            assert_eq!(actual, Ok(("".into(), expected)));
+            let (_, actual) = actual.unwrap();
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_parens() {
+        let cases = vec![
+            ("(d4)", Die(4)),
+            ("\t(\n--12)", Constant(12)),
+            ("  (  ---+20)  ", Constant(-20)),
+            (" ( d20 ) ", Die(20)),
+        ];
+
+        for (input, expected) in cases {
+            let actual = parse_parens(input.into());
+            let (_, actual) = actual.unwrap();
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_expression() {
+        let cases = vec![
+            ("d4", Die(4)),
+            ("4", Constant(4)),
+            ("\t\n ---12", Constant(-12)),
+            ("\t\n d20", Die(20)),
+            (" ( d20 ) ", Die(20)),
+        ];
+
+        for (input, expected) in cases {
+            let actual = parse_expression(input.into());
+            let (_, actual) = actual.unwrap();
+            assert_eq!(expected, actual);
         }
     }
 }
