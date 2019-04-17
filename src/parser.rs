@@ -1,113 +1,123 @@
+//! Parser Module
+
 use nom;
 use nom::digit;
+use nom::types::CompleteStr;
 
-use std::str;
+use std::str::FromStr;
 
 use crate::expression::Expression;
 use Expression::*;
 
-// #[derive(Debug, PartialEq)]
-// pub struct Color {
-//     pub red: u8,
-//     pub green: u8,
-//     pub blue: u8,
-// }
-
-// pub fn from_str(input: &str) -> Result<i32, std::num::ParseIntError> {
-//     i32::from_str_radix(input, 10)
-// }
-
-// pub fn is_decimal_digit(c: char) -> bool {
-//     // println!("{}.is_digit(10) = {}", c, c.is_digit(10));
-//     c.is_digit(10)
-// }
-
-// pub fn from_hex(input: &str) -> Result<u8, std::num::ParseIntError> {
-//     u8::from_str_radix(input, 16)
-// }
-
-// pub fn is_hex_digit(c: char) -> bool {
-//     c.is_digit(16)
-// }
-
-// TODO: parse basic die roll
-
-// named!(die<&str,&Expression>,nom::i32)
-
-// named!(hex_primary<&str, u8>,
-//     map_res!(take_while_m_n!(2, 2, is_hex_digit), from_hex)
-// );
-
-// named!(hex_color<&str, Color>,
-//     do_parse!(
-//                tag!("#")   >>
-//         red:   hex_primary >>
-//         green: hex_primary >>
-//         blue:  hex_primary >>
-//         (Color { red, green, blue })
-//     )
-// );
-// named!(pub parse_number<&str,i32>,map_res!( take_while!(is_digit),nom::be_i32));
-named!(take4<&str,&str>, take!(4));
-named!(num<&str, i32>, map_res!(ws!(digit), parse_i32));
-
-fn parse_i32(input: &str) -> Result<i32, std::num::ParseIntError> {
-    // println!(
-    //     "int32::from_str_radix({}, 10) = {:?}",
-    //     input,
-    //     i32::from_str_radix(input, 10)
-    // );
-
-    i32::from_str_radix(input, 10)
-}
-
 named!(
-    ptag,
-    tap!(res: tag!( "abcd" ) => { println!("HELLO!");
-    println!("\n\nrecognized {}\n\n", str::from_utf8(res).unwrap()) } )
+    parse_signs<CompleteStr, CompleteStr>,
+    ws!(take_while!(call!(|c| c == '+' || c == '-')))
 );
 
-// named!(parse_number< &str, i32 >, map_res!(take_while!(is_decimal_digit), parse_i32));
+named!(
+    parse_eval_signs<CompleteStr, char>,
+    map!(parse_signs, |input: CompleteStr| {
+        let neg_count = input.chars().filter(|&x| x == '-').count();
+        match neg_count % 2 {
+            1 => '-',
+            _ => '+',
+        }
+    })
+);
 
-// fn parse_num(num: &str) -> Result<i32, std::num::ParseIntError> {
-//     i32::from_str_radix(num, 10)
-// }
+named!(
+    parse_unsigned_number<CompleteStr, u32>,
+    map_res!(
+        recognize!(digit),
+        |CompleteStr(string)| u32::from_str(string)
+    )
+);
+
+named!(
+    parse_signed_number<CompleteStr, i32>,
+    map!(
+        pair!(
+            opt!(parse_eval_signs),
+            parse_unsigned_number
+        ),
+        |(sign, value): (Option<char>, u32)| {
+            match sign {
+                Some('-') => -1 * value as i32,
+                _ => 1 * value as i32
+            }
+        }
+    )
+);
+
+named!(
+    parse_constant<CompleteStr, Expression>,
+    map!(parse_signed_number, |num: i32| Constant(num))
+);
+
+named!(
+    parse_die<CompleteStr, Expression>,
+    do_parse!(
+        tag!("d") >>
+        num: parse_unsigned_number >>
+        (Die(num as i32))
+    )
+);
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    // #[test]
-    // fn test_ptag() {
-    //     assert_eq!(Ok((&b"efg"[..], &b"abcd"[..])), ptag(&b"abcdefg"[..]));
-    // }
-
     #[test]
-    fn test_parse_number() {
-        assert_eq!(Ok(1234), parse_i32("1234"));
-        assert_eq!(Ok(("", 1234)), num("1234"));
+    fn test_parse_number_success() {
+        let cases: Vec<(&str, i32)> = vec![
+            ("-999999999", -999999999),
+            ("-1234", -1234),
+            ("---10", -10),
+            ("-10", -10),
+            ("-1", -1),
+            ("0", 0),
+            ("1", 1),
+            ("+++--1", 1),
+            ("10", 10),
+            ("1234", 1234),
+            ("--1234", 1234),
+            ("999999999", 999999999),
+        ];
+
+        for (input, expected) in cases {
+            let result = parse_signed_number(input.into());
+            assert_eq!(result, Ok(("".into(), expected)));
+        }
     }
 
-    // #[test]
-    // fn test_take4() {
-    //     assert_eq!(Ok(("56789", "1234")), take4("123456789"));
-    // }
+    #[test]
+    fn test_parse_constant() {
+        let cases = vec![
+            ("4", Constant(4)),
+            ("  5", Constant(5)),
+            ("\n\t --10", Constant(10)),
+            ("\n\t ---10", Constant(-10)),
+        ];
 
-    // #[test]
-    // fn test_parse_num
+        for (input, expected) in cases {
+            let actual = parse_constant(input.into());
+            assert_eq!(actual, Ok(("".into(), expected)));
+        }
+    }
 
-    // #[test]
-    // fn parse_color() {
-    //     assert_eq!(
-    //         hex_color("#2F14DF"),
-    //         Ok((
-    //             "",
-    //             Color {
-    //                 red: 47,
-    //                 green: 20,
-    //                 blue: 223,
-    //             }
-    //         ))
-    //     );
-    // }
+    #[test]
+    fn test_parse_die() {
+        let cases = vec![
+            ("d4", Die(4)),
+            ("d6", Die(6)),
+            ("d10", Die(10)),
+            ("d12", Die(12)),
+            ("d20", Die(20)),
+        ];
+
+        for (input, expected) in cases {
+            let actual = parse_die(input.into());
+            assert_eq!(actual, Ok(("".into(), expected)));
+        }
+    }
 }
