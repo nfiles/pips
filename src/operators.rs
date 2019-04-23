@@ -6,9 +6,20 @@ pub fn sum(left: &i32, right: &i32) -> i32 {
     (*left) + (*right)
 }
 
+/// Find the difference between two rolls
+pub fn difference(left: &i32, right: &i32) -> i32 {
+    (*left) - (*right)
+}
+
 /// Multiple two rolls
 pub fn multiply(left: &i32, right: &i32) -> i32 {
     (*left) * (*right)
+}
+
+/// Divide two rolls
+pub fn divide(left: &i32, right: &i32) -> i32 {
+    // TODO: account for divide-by-zero
+    (*left) / (*right)
 }
 
 /// Take the greater of two rolls
