@@ -3,34 +3,40 @@
 use rand::Rng;
 use std::collections::HashMap;
 
-use crate::operators::{advantage, compare, disadvantage, multiply, sum, BinaryOperator};
+use crate::operators::{
+    advantage, compare, difference, disadvantage, divide, multiply, sum, BinaryOperator,
+};
 use crate::traits::Rollable;
 
 /// Represents a dice roll expression
 #[derive(Clone, Debug, PartialEq)]
-pub enum Expression<'a> {
-    Die(i32),
+pub enum Expression {
+    Die(u32),
     Constant(i32),
 
-    Sum(&'a Expression<'a>, &'a Expression<'a>),
-    Multiply(&'a Expression<'a>, &'a Expression<'a>),
-    Advantage(&'a Expression<'a>),
-    Disadvantage(&'a Expression<'a>),
-    Compare(&'a Expression<'a>, &'a Expression<'a>),
+    Sum(Box<Expression>, Box<Expression>),
+    Diff(Box<Expression>, Box<Expression>),
+    Multiply(Box<Expression>, Box<Expression>),
+    Divide(Box<Expression>, Box<Expression>),
+    Advantage(Box<Expression>),
+    Disadvantage(Box<Expression>),
+    Compare(Box<Expression>, Box<Expression>),
 }
 
 use Expression::*;
 
-impl<'a> Expression<'a> {
+impl Expression {
     /// retrieve the operation encapsulated by the given `Expression`,
     /// represented by a binary operator and left/right expressions
-    fn get_operation(&self) -> Option<(BinaryOperator, &Expression, &Expression)> {
+    fn get_operation(&self) -> Option<(BinaryOperator, &Box<Expression>, &Box<Expression>)> {
         match self {
             Constant(_) => None,
             Die(_) => None,
 
             Sum(left, right) => Some((sum, left, right)),
+            Diff(left, right) => Some((difference, left, right)),
             Multiply(left, right) => Some((multiply, left, right)),
+            Divide(left, right) => Some((divide, left, right)),
             Advantage(expr) => Some((advantage, expr, expr)),
             Disadvantage(expr) => Some((disadvantage, expr, expr)),
             Compare(left, right) => Some((compare, left, right)),
@@ -38,7 +44,7 @@ impl<'a> Expression<'a> {
     }
 }
 
-impl<'a> Rollable for Expression<'a> {
+impl Rollable for Expression {
     /// Get a single value from the roll expression
     fn roll(&self) -> i32 {
         // get the root cases out of the way
@@ -46,7 +52,7 @@ impl<'a> Rollable for Expression<'a> {
             return *num;
         }
         if let Die(max) = self {
-            return rand::thread_rng().gen_range(1, max + 1);
+            return rand::thread_rng().gen_range(1, *max as i32 + 1);
         }
 
         let (operator, left, right) = self
@@ -63,7 +69,7 @@ impl<'a> Rollable for Expression<'a> {
             return [(*num, 1)].iter().cloned().collect();
         }
         if let Die(num) = self {
-            return (1..num + 1).map(|i| (i, 1)).collect();
+            return (1..num + 1).map(|i| (i as i32, 1)).collect();
         }
 
         // handle the more complicated expressions
@@ -98,7 +104,8 @@ mod tests {
 
     #[test]
     fn multiply_produces_correct_plot() {
-        let expression = Expression::Multiply(&Expression::Die(4), &Expression::Die(4));
+        let expression =
+            Expression::Multiply(Box::new(Expression::Die(4)), Box::new(Expression::Die(4)));
         let expected: HashMap<i32, i32> = [
             (1, 1),
             (2, 2),
@@ -120,8 +127,39 @@ mod tests {
     }
 
     #[test]
+    fn divide_produces_correct_plot() {
+        let expression =
+            Expression::Divide(Box::new(Expression::Die(4)), Box::new(Expression::Die(4)));
+        // 1 1 -> 1
+        // 1 2 -> 0
+        // 1 3 -> 0
+        // 1 4 -> 0
+        // 2 1 -> 2
+        // 2 2 -> 1
+        // 2 3 -> 0
+        // 2 4 -> 0
+        // 3 1 -> 3
+        // 3 2 -> 1
+        // 3 3 -> 1
+        // 3 4 -> 0
+        // 4 1 -> 4
+        // 4 2 -> 2
+        // 4 3 -> 1
+        // 4 4 -> 1
+        let expected: HashMap<i32, i32> = [(0, 6), (1, 6), (2, 2), (3, 1), (4, 1)]
+            .iter()
+            .cloned()
+            .collect();
+
+        let actual = expression.plot();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
     fn sum_produces_correct_plot() {
-        let expression = Expression::Sum(&Expression::Die(6), &Expression::Die(6));
+        let expression =
+            Expression::Sum(Box::new(Expression::Die(6)), Box::new(Expression::Die(6)));
         let expected: HashMap<i32, i32> = [
             (2, 1),
             (3, 2),
@@ -145,8 +183,39 @@ mod tests {
     }
 
     #[test]
+    fn difference_produces_correct_plot() {
+        let expression =
+            Expression::Diff(Box::new(Expression::Die(4)), Box::new(Expression::Die(4)));
+        // 1 1 -> 0
+        // 1 2 -> -1
+        // 1 3 -> -2
+        // 1 4 -> -3
+        // 2 1 -> 1
+        // 2 2 -> 0
+        // 2 3 -> -1
+        // 2 4 -> -2
+        // 3 1 -> 2
+        // 3 2 -> 1
+        // 3 3 -> 0
+        // 3 4 -> -1
+        // 4 1 -> 3
+        // 4 2 -> 2
+        // 4 3 -> 1
+        // 4 4 -> 0
+        let expected: HashMap<i32, i32> =
+            [(-3, 1), (-2, 2), (-1, 3), (0, 4), (1, 3), (2, 2), (3, 1)]
+                .iter()
+                .cloned()
+                .collect();
+
+        let actual = expression.plot();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
     fn advantage_produces_correct_plot() {
-        let expression = Expression::Advantage(&Expression::Die(4));
+        let expression = Expression::Advantage(Box::new(Expression::Die(4)));
         // 1 1 -> 1
         // 1 2 -> 2
         // 1 3 -> 3
@@ -173,7 +242,7 @@ mod tests {
 
     #[test]
     fn disadvantage_produces_correct_plot() {
-        let expression = Expression::Disadvantage(&Expression::Die(4));
+        let expression = Expression::Disadvantage(Box::new(Expression::Die(4)));
         // 1 1 -> 1
         // 1 2 -> 1
         // 1 3 -> 1
@@ -200,7 +269,8 @@ mod tests {
 
     #[test]
     fn contest_produces_correct_plot() {
-        let expression = Expression::Compare(&Expression::Die(2), &Expression::Die(3));
+        let expression =
+            Expression::Compare(Box::new(Expression::Die(2)), Box::new(Expression::Die(3)));
 
         // 1 1 -> 0
         // 1 2 -> -1
@@ -217,7 +287,10 @@ mod tests {
 
     #[test]
     fn compare_produces_correct_plot() {
-        let expression = Expression::Compare(&Expression::Die(3), &Expression::Constant(2));
+        let expression = Expression::Compare(
+            Box::new(Expression::Die(3)),
+            Box::new(Expression::Constant(2)),
+        );
 
         // 1 2 -> -1
         // 2 2 -> 0
