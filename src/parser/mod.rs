@@ -1,3 +1,5 @@
+mod test_helpers;
+
 pub mod base_terms;
 pub mod parser;
 
