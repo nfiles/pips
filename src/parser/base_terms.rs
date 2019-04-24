@@ -10,7 +10,7 @@ use Expression::{Constant, Die};
 named!(
     parse_eval_signs<CompleteStr, char>,
     map!(
-        ws!(take_while!(call!(|c| c == '+' || c == '-'))),
+        take_while!(call!(|c| c == '+' || c == '-')),
         |input: CompleteStr| {
             let neg_count = input.chars().filter(|&x| x == '-').count();
             match neg_count % 2 {
@@ -47,7 +47,9 @@ named!(
 
 named!(
     pub parse_constant<CompleteStr, Expression>,
-    map!(parse_signed_number, |num: i32| Constant(num))
+    ws!(
+        map!(parse_signed_number, |num: i32| Constant(num))
+    )
 );
 
 named!(
@@ -63,7 +65,7 @@ named!(
 //     parse_die_coefficient<CompleteStr, Expression>,
 //     map!(
 //         do_parse!(
-//             coefficient: ws!(parse_unsigned_number) >>
+//             coefficient: parse_unsigned_number      >>
 //                          tag!("d")                  >>
 //             num:         parse_unsigned_number      >>
 //             (coefficient, num)
