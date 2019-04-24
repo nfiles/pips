@@ -9,11 +9,13 @@ use Expression::*;
 use super::base_terms::{parse_constant, parse_die};
 
 named!(
-    parse_root<CompleteStr, Expression>,
-    alt_complete!(
-        parse_parens |
-        parse_die |
-        parse_constant
+    parse_base_term<CompleteStr, Expression>,
+    ws!(
+        alt_complete!(
+            parse_parens |
+            parse_die |
+            parse_constant
+        )
     )
 );
 
@@ -75,11 +77,11 @@ named!(
 named!(
     parse_multiply<CompleteStr, Expression>,
     do_parse!(
-        init: parse_root >>
+        init: parse_base_term >>
         res:  fold_many0!(
             pair!(
                 ws!(alt!(tag!("*") | tag!("/"))),
-                parse_root
+                parse_base_term
             ),
             init,
             |acc, (CompleteStr(op), expr): (CompleteStr, Expression)| {
@@ -97,7 +99,10 @@ named!(
 
 named!(
     parse_expression<CompleteStr, Expression>,
-    call!(parse_sum)
+    alt_complete!(
+        parse_sum |
+        parse_functions
+    )
 );
 
 named!(
@@ -207,6 +212,33 @@ mod tests {
                 ),
             ),
             (
+                "adv(d20) + 2",
+                Sum(
+                    Box::new(Advantage(Box::new(Die(20)))),
+                    Box::new(Constant(2)),
+                ),
+            ),
+            (
+                "2+adv(d20)",
+                Sum(
+                    Box::new(Constant(2)),
+                    Box::new(Advantage(Box::new(Die(20)))),
+                ),
+            ),
+            (
+                "2*d10+adv(d20)",
+                Sum(
+                    Box::new(Multiply(Box::new(Constant(2)), Box::new(Die(10)))),
+                    Box::new(Multiply(
+                        Box::new(Diff(
+                            Box::new(Advantage(Box::new(Die(20)))),
+                            Box::new(Die(4)),
+                        )),
+                        Box::new(Die(4)),
+                    )),
+                ),
+            ),
+            (
                 "2*d10+adv(d20)-d4",
                 Sum(
                     Box::new(Multiply(Box::new(Constant(2)), Box::new(Die(10)))),
@@ -257,6 +289,6 @@ mod tests {
             ),
         ];
 
-        test_parser(parse_sum, cases);
+        test_parser(parse_expression, cases);
     }
 }
