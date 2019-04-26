@@ -55,3 +55,48 @@ pub fn compare(left: &i32, right: &i32) -> i32 {
         -1
     }
 }
+
+/// 1 if right is greater than left else 0
+pub fn greater_than(left: &i32, right: &i32) -> i32 {
+    if *left > *right {
+        1
+    } else {
+        0
+    }
+}
+
+/// 1 if right is greater than or equal to left else 0
+pub fn greater_than_or_equal_to(left: &i32, right: &i32) -> i32 {
+    if *left >= *right {
+        1
+    } else {
+        0
+    }
+}
+
+/// 1 if right is less than left else 0
+pub fn less_than(left: &i32, right: &i32) -> i32 {
+    if *left > *right {
+        1
+    } else {
+        0
+    }
+}
+
+/// 1 if right is less than left else 0
+pub fn less_than_or_equal_to(left: &i32, right: &i32) -> i32 {
+    if *left >= *right {
+        1
+    } else {
+        0
+    }
+}
+
+/// 1 if right is equal to left else 0
+pub fn equal_to(left: &i32, right: &i32) -> i32 {
+    if *left > *right {
+        1
+    } else {
+        0
+    }
+}
