@@ -52,25 +52,9 @@ named!(
 );
 
 named!(
-    parse_sum<CompleteStr, Expression>,
-    do_parse!(
-        init: parse_multiply >>
-        res:  fold_many0!(
-            pair!(
-                ws!(alt!(tag!("+") | tag!("-"))),
-                parse_multiply
-            ),
-            init,
-            |acc, (CompleteStr(op), expr): (CompleteStr, Expression)| {
-                // TODO: balance
-                match op {
-                    "+" => Sum(Box::new(acc), Box::new(expr)),
-                    "-" => Diff(Box::new(acc), Box::new(expr)),
-                    _ => panic!("unknown operator"),
-                }
-            }
-        ) >>
-        (res)
+    parse_functions<CompleteStr, Expression>,
+    alt_complete!(
+        parse_unary_function
     )
 );
 
@@ -98,15 +82,31 @@ named!(
 );
 
 named!(
-    parse_expression<CompleteStr, Expression>,
-    call!(parse_sum)
+    parse_sum<CompleteStr, Expression>,
+    do_parse!(
+        init: parse_multiply >>
+        res:  fold_many0!(
+            pair!(
+                ws!(alt!(tag!("+") | tag!("-"))),
+                parse_multiply
+            ),
+            init,
+            |acc, (CompleteStr(op), expr): (CompleteStr, Expression)| {
+                // TODO: balance
+                match op {
+                    "+" => Sum(Box::new(acc), Box::new(expr)),
+                    "-" => Diff(Box::new(acc), Box::new(expr)),
+                    _ => panic!("unknown operator"),
+                }
+            }
+        ) >>
+        (res)
+    )
 );
 
 named!(
-    parse_functions<CompleteStr, Expression>,
-    alt_complete!(
-        parse_unary_function
-    )
+    parse_expression<CompleteStr, Expression>,
+    call!(parse_sum)
 );
 
 #[cfg(test)]
