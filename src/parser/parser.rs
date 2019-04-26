@@ -12,6 +12,7 @@ named!(
     parse_base_term<CompleteStr, Expression>,
     ws!(
         alt_complete!(
+            parse_functions |
             parse_parens |
             parse_die |
             parse_constant
@@ -23,7 +24,6 @@ named!(
     parse_parens<CompleteStr, Expression>,
     delimited!(
         ws!(tag!("(")),
-        // alt_complete!(parse_expression | parse_functions),
         parse_expression,
         ws!(tag!(")"))
     )
@@ -99,10 +99,7 @@ named!(
 
 named!(
     parse_expression<CompleteStr, Expression>,
-    alt_complete!(
-        parse_sum |
-        parse_functions
-    )
+    call!(parse_sum)
 );
 
 named!(
@@ -212,6 +209,13 @@ mod tests {
                 ),
             ),
             (
+                "(adv(d20)) + 2",
+                Sum(
+                    Box::new(Advantage(Box::new(Die(20)))),
+                    Box::new(Constant(2)),
+                ),
+            ),
+            (
                 "adv(d20) + 2",
                 Sum(
                     Box::new(Advantage(Box::new(Die(20)))),
@@ -229,26 +233,17 @@ mod tests {
                 "2*d10+adv(d20)",
                 Sum(
                     Box::new(Multiply(Box::new(Constant(2)), Box::new(Die(10)))),
-                    Box::new(Multiply(
-                        Box::new(Diff(
-                            Box::new(Advantage(Box::new(Die(20)))),
-                            Box::new(Die(4)),
-                        )),
-                        Box::new(Die(4)),
-                    )),
+                    Box::new(Advantage(Box::new(Die(20)))),
                 ),
             ),
             (
                 "2*d10+adv(d20)-d4",
-                Sum(
-                    Box::new(Multiply(Box::new(Constant(2)), Box::new(Die(10)))),
-                    Box::new(Multiply(
-                        Box::new(Diff(
-                            Box::new(Advantage(Box::new(Die(20)))),
-                            Box::new(Die(4)),
-                        )),
-                        Box::new(Die(4)),
+                Diff(
+                    Box::new(Sum(
+                        Box::new(Multiply(Box::new(Constant(2)), Box::new(Die(10)))),
+                        Box::new(Advantage(Box::new(Die(20)))),
                     )),
+                    Box::new(Die(4)),
                 ),
             ),
             (
