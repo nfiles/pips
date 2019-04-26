@@ -4,9 +4,21 @@ use rand::Rng;
 use std::collections::HashMap;
 
 use crate::operators::{
-    advantage, compare, difference, disadvantage, divide, multiply, sum, BinaryOperator,
+    advantage, difference, disadvantage, divide, equal_to, greater_than, greater_than_or_equal_to,
+    less_than, less_than_or_equal_to, multiply, sum, BinaryOperator,
 };
 use crate::traits::Rollable;
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Comparison {
+    GreaterThan,
+    GreaterThanOrEqualTo,
+    LessThan,
+    LessThanOrEqualTo,
+    EqualTo,
+}
+
+use Comparison::*;
 
 /// Represents a dice roll expression
 #[derive(Clone, Debug, PartialEq)]
@@ -20,7 +32,7 @@ pub enum Expression {
     Divide(Box<Expression>, Box<Expression>),
     Advantage(Box<Expression>),
     Disadvantage(Box<Expression>),
-    Compare(Box<Expression>, Box<Expression>),
+    Compare(Box<Expression>, Box<Expression>, Comparison),
 }
 
 use Expression::*;
@@ -39,7 +51,16 @@ impl Expression {
             Divide(left, right) => Some((divide, left, right)),
             Advantage(expr) => Some((advantage, expr, expr)),
             Disadvantage(expr) => Some((disadvantage, expr, expr)),
-            Compare(left, right) => Some((compare, left, right)),
+            Compare(left, right, comparison) => {
+                let compare = match comparison {
+                    GreaterThan => greater_than,
+                    GreaterThanOrEqualTo => greater_than_or_equal_to,
+                    LessThan => less_than,
+                    LessThanOrEqualTo => less_than_or_equal_to,
+                    EqualTo => equal_to,
+                };
+                Some((compare, left, right))
+            }
         }
     }
 }
@@ -268,16 +289,20 @@ mod tests {
     }
 
     #[test]
+    #[ignore("not implemented")]
     fn contest_produces_correct_plot() {
-        let expression =
-            Expression::Compare(Box::new(Expression::Die(2)), Box::new(Expression::Die(3)));
+        let expression = Expression::Compare(
+            Box::new(Expression::Die(2)),
+            Box::new(Expression::Die(3)),
+            Comparison::GreaterThan,
+        );
 
         // 1 1 -> 0
-        // 1 2 -> -1
-        // 1 3 -> -1
+        // 1 2 -> 0
+        // 1 3 -> 0
         // 2 1 -> 1
         // 2 2 -> 0
-        // 2 3 -> -1
+        // 2 3 -> 0
         let expected: HashMap<i32, i32> = [(-1, 3), (0, 2), (1, 1)].iter().cloned().collect();
 
         let actual = expression.plot();
@@ -287,18 +312,36 @@ mod tests {
 
     #[test]
     fn compare_produces_correct_plot() {
-        let expression = Expression::Compare(
-            Box::new(Expression::Die(3)),
-            Box::new(Expression::Constant(2)),
-        );
+        let left = Expression::Die(3);
+        let right = Expression::Die(3);
+        // 1 1
+        // 1 2
+        // 1 3
+        // 2 1
+        // 2 2
+        // 2 3
+        // 3 1
+        // 3 2
+        // 3 3
+        let cases: Vec<(Comparison, &[(i32, i32)])> = vec![
+            (Comparison::GreaterThan, &[(0, 6), (1, 3)]),
+            (Comparison::GreaterThanOrEqualTo, &[(0, 3), (1, 6)]),
+            (Comparison::LessThan, &[(0, 6), (1, 3)]),
+            (Comparison::LessThanOrEqualTo, &[(0, 3), (1, 6)]),
+            (Comparison::EqualTo, &[(0, 6), (1, 3)]),
+        ];
 
-        // 1 2 -> -1
-        // 2 2 -> 0
-        // 3 2 -> 1
-        let expected: HashMap<i32, i32> = [(-1, 1), (0, 1), (1, 1)].iter().cloned().collect();
+        for (comparison, options) in cases {
+            let expression = Expression::Compare(
+                Box::new(left.clone()),
+                Box::new(right.clone()),
+                comparison.clone(),
+            );
 
-        let actual = expression.plot();
+            let expected: HashMap<i32, i32> = options.iter().cloned().collect();
+            let actual = expression.plot();
 
-        assert_eq!(expected, actual);
+            assert_eq!(expected, actual, "{:?}", comparison);
+        }
     }
 }

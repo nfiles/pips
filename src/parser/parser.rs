@@ -3,7 +3,9 @@
 use nom;
 use nom::types::CompleteStr;
 
+use crate::expression::Comparison;
 use crate::expression::Expression;
+use Comparison::*;
 use Expression::*;
 
 use super::base_terms::{parse_constant, parse_die};
@@ -105,8 +107,43 @@ named!(
 );
 
 named!(
+    parse_comparison<CompleteStr, Expression>,
+    map_res!(
+        do_parse!(
+            left: ws!(parse_sum) >>
+            operator: ws!(
+                alt_complete!(
+                    tag!(">=") |
+                    tag!(">") |
+                    tag!("<=") |
+                    tag!("<") |
+                    tag!("=")
+                )
+            ) >>
+            right: ws!(parse_sum) >>
+            (left, right, operator)
+        ),
+        |(left, right, CompleteStr(operator)): (Expression, Expression, CompleteStr)| -> Result<Expression, &str> {
+            let comparison = match operator {
+                ">=" => Ok(GreaterThanOrEqualTo),
+                ">" => Ok(GreaterThan),
+                "<=" => Ok(LessThanOrEqualTo),
+                "<" => Ok(LessThan),
+                "=" => Ok(EqualTo),
+                _ => Err("unknown comparison operator"),
+            }?;
+
+            Ok(Compare(Box::new(left), Box::new(right), comparison))
+        }
+    )
+);
+
+named!(
     parse_expression<CompleteStr, Expression>,
-    call!(parse_sum)
+    alt_complete!(
+        parse_comparison |
+        parse_sum
+    )
 );
 
 #[cfg(test)]
@@ -183,6 +220,34 @@ mod tests {
         ];
 
         test_parser(parse_sum, cases);
+    }
+
+    #[test]
+    fn test_parse_compare() {
+        let cases = vec![
+            (
+                "d4 > d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), GreaterThan),
+            ),
+            (
+                "d4 >= d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), GreaterThanOrEqualTo),
+            ),
+            (
+                "d4 < d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), LessThan),
+            ),
+            (
+                "d4 <= d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), LessThanOrEqualTo),
+            ),
+            (
+                "d4 = d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), EqualTo),
+            ),
+        ];
+
+        test_parser(parse_comparison, cases);
     }
 
     #[test]
@@ -281,6 +346,26 @@ mod tests {
                         Box::new(Die(4)),
                     )))),
                 ),
+            ),
+            (
+                "d4 > d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), GreaterThan),
+            ),
+            (
+                "d4 >= d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), GreaterThanOrEqualTo),
+            ),
+            (
+                "d4 < d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), LessThan),
+            ),
+            (
+                "d4 <= d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), LessThanOrEqualTo),
+            ),
+            (
+                "d4 = d4",
+                Compare(Box::new(Die(4)), Box::new(Die(4)), EqualTo),
             ),
         ];
 
