@@ -289,7 +289,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore("not implemented")]
+    #[ignore = "not implemented"]
     fn contest_produces_correct_plot() {
         let expression = Expression::Compare(
             Box::new(Expression::Die(2)),
