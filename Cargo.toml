@@ -1,8 +1,13 @@
 [package]
 name = "pips"
 version = "0.1.0"
-authors = ["nfiles"]
+authors = ["Nathan Files <nathanwfiles@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/nfiles/pips"
+keywords = ["dice", "dnd", "statistics"]
+categories = ["games", "parser-implementations", "wasm"]
+license = "MIT"
+description = "Library for analyzing dice roll expressions in TTRPGs"
 
 [dependencies]
 nom = "4.2.3"
