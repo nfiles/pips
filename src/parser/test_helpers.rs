@@ -1,6 +1,7 @@
 #[cfg(test)]
-
 type ParseFunc<I, O> = fn(input: I) -> nom::IResult<I, O>;
+
+#[cfg(test)]
 pub fn test_parser<'a, I, O>(test: ParseFunc<I, O>, cases: Vec<(&'a str, O)>)
 where
     I: std::fmt::Debug,
