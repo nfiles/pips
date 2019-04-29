@@ -5,7 +5,7 @@ use nom::types::CompleteStr;
 use std::str::FromStr;
 
 use crate::expression::Expression;
-use Expression::{Constant, Die};
+use Expression::{Constant, Die, Sum};
 
 named!(
     parse_eval_signs<CompleteStr, char>,
@@ -61,31 +61,30 @@ named!(
     )
 );
 
-// named!(
-//     parse_die_coefficient<CompleteStr, Expression>,
-//     map!(
-//         do_parse!(
-//             coefficient: parse_unsigned_number      >>
-//                          tag!("d")                  >>
-//             num:         parse_unsigned_number      >>
-//             (coefficient, num)
-//         ),
-//         |(coefficient, num)| {
-//             if coefficient == 0 {
-//                 return Constant(0)
-//             }
+named!(
+    parse_die_coefficient<CompleteStr, Expression>,
+    map!(
+        do_parse!(
+            coefficient: ws!(parse_unsigned_number) >>
+                         tag!("d")                  >>
+            num:         parse_unsigned_number      >>
+            (coefficient, num)
+        ),
+        |(coefficient, num)| {
+            if coefficient == 0 {
+                return Constant(0)
+            }
 
-//             (0..coefficient).fold(Die(num), |acc, _| {
-//                 Sum(Box::new(acc), Box::new(Die(num)))
-//             })
-//         }
-//     )
-// );
+            (0..coefficient-1).fold(Die(num), |acc, _| {
+                Sum(Box::new(acc), Box::new(Die(num)))
+            })
+        }
+    )
+);
 
 named!(
     pub parse_die<CompleteStr, Expression>,
-    alt_complete!(parse_die_single)
-    // alt_complete!(parse_die_single | parse_die_coefficient)
+    alt_complete!(parse_die_single | parse_die_coefficient)
 );
 
 #[cfg(test)]
@@ -133,6 +132,33 @@ mod tests {
             (" d10", Die(10)),
             ("\nd12", Die(12)),
             ("\td20  ", Die(20)),
+            (" 2d6 ", Sum(Box::new(Die(6)), Box::new(Die(6)))),
+            (
+                "4d6",
+                Sum(
+                    Box::new(Sum(
+                        Box::new(Sum(Box::new(Die(6)), Box::new(Die(6)))),
+                        Box::new(Die(6)),
+                    )),
+                    Box::new(Die(6)),
+                ),
+            ),
+            (
+                "6d6",
+                Sum(
+                    Box::new(Sum(
+                        Box::new(Sum(
+                            Box::new(Sum(
+                                Box::new(Sum(Box::new(Die(6)), Box::new(Die(6)))),
+                                Box::new(Die(6)),
+                            )),
+                            Box::new(Die(6)),
+                        )),
+                        Box::new(Die(6)),
+                    )),
+                    Box::new(Die(6)),
+                ),
+            ),
         ];
 
         test_parser(parse_die, cases);
