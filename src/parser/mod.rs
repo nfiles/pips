@@ -1,7 +1,6 @@
 mod test_helpers;
 
-pub mod base_terms;
-pub mod parser;
+mod base_terms;
+mod parser;
 
-// TODO: trim this down
-pub use parser::*;
+pub use parser::parse;

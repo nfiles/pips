@@ -138,6 +138,7 @@ named!(
     )
 );
 
+/// recursive parser that starts the order of operations
 named!(
     parse_expression<CompleteStr, Expression>,
     alt_complete!(
@@ -145,6 +146,25 @@ named!(
         parse_sum
     )
 );
+
+/// root parser that consumes entire input including trailing whitespace
+named!(
+    parse_full_expression<CompleteStr, Expression>,
+    do_parse!(
+        expr:   parse_expression >>
+                ws!(eof!())      >>
+        (expr)
+    )
+);
+
+/// parse an input string into an `Expression` and report errors
+pub fn parse(input: &str) -> Result<Expression, nom::Err<CompleteStr>> {
+    let result = parse_full_expression(input.into());
+    match result {
+        Ok((_, expr)) => Ok(expr),
+        Err(err) => Err(err),
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -168,7 +188,10 @@ mod tests {
     #[test]
     fn test_parse_unary_function() {
         let cases = vec![
-            ("dis(d4)", Disadvantage(Box::new(Die(4)))),
+            (
+                "dis(2d4)",
+                Disadvantage(Box::new(Sum(Box::new(Die(4)), Box::new(Die(4))))),
+            ),
             (" dis ( d4 ) ", Disadvantage(Box::new(Die(4)))),
             ("adv(d4)", Advantage(Box::new(Die(4)))),
             (" adv( d4 ) ", Advantage(Box::new(Die(4)))),
@@ -370,5 +393,27 @@ mod tests {
         ];
 
         test_parser(parse_expression, cases);
+    }
+
+    #[test]
+    fn test_parse() {
+        let cases: Vec<(&str, Result<Expression, &str>)> = vec![
+            ("2d4", Ok(Sum(Box::new(Die(4)), Box::new(Die(4))))),
+            // trailing whitespace is ok
+            (" \t\nd10 \t\n", Ok(Die(10))),
+            // entire unknown keyword
+            ("2d4 extra", Err("")),
+            // must include operator between base terms
+            ("d4 d4", Err("")),
+            // only one comparison operator allowed
+            ("d4 > d6 < d10", Err("")),
+        ];
+
+        for (input, expected) in cases {
+            match parse(input) {
+                Ok(actual) => assert_eq!(actual, expected.unwrap()),
+                Err(_) => assert!(expected.is_err()),
+            }
+        }
     }
 }
