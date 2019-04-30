@@ -74,7 +74,7 @@ named!(
                 // TODO: balance
                 match op {
                     "*" => Multiply(Box::new(acc), Box::new(expr)),
-                    "-" => Divide(Box::new(acc), Box::new(expr)),
+                    "/" => Divide(Box::new(acc), Box::new(expr)),
                     _ => panic!("unknown operator"),
                 }
             }
