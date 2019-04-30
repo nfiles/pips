@@ -4,10 +4,15 @@ version = "0.1.1"
 authors = ["Nathan Files <nathanwfiles@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/nfiles/pips"
-keywords = ["dice", "dnd", "statistics", "ttrpg"]
+keywords = ["dice", "dnd", "probability", "statistics", "ttrpg"]
 categories = ["games", "parser-implementations", "wasm"]
 license = "MIT"
 description = "Library for analyzing dice roll expressions in TTRPGs"
+
+[workspace]
+members = [
+    "pips-wasm",
+]
 
 [dependencies]
 nom = "4.2.3"
