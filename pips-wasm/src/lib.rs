@@ -11,40 +11,32 @@ use wasm_bindgen::prelude::*;
 
 mod utils;
 
-#[derive(Serialize)]
-pub struct RollResult<T> {
-    pub success: bool,
-    pub result: T,
-    pub err: String,
-}
+#[wasm_bindgen(typescript_custom_section)]
+const TS_APPEND_CONTENT: &'static str = r#"
 
-#[derive(Serialize)]
+export interface Ok<T> { type: "Ok", result: T };
+export interface Err<T> { type: "Err", result: T };
+export type Result<T, E> = Ok<T> | Err<E>;
+
+/** parse and roll a dice expression */
+export function roll(input: string): Result<number, string>;
+
+/** parse and plot a dice expression */
+export function plot(input: string): Result<Record<number>, string>;
+
+"#;
+
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type", content = "result")]
 pub enum PipsResult<R, E> {
     Ok(R),
     Err(E),
 }
 
-// #[derive(Serialize)]
-// pub struct PlotResult {
-//     pub success: bool,
-//     pub result: HashMap<i32, i32>,
-//     pub err: String,
-// }
-
 #[wasm_bindgen]
 pub fn roll(input: &str) -> JsValue {
-    // let result: RollResult<i32> = match parse(input) {
-    //     Ok(expr) => RollResult {
-    //         success: true,
-    //         result: expr.roll(),
-    //         err: "".to_string(),
-    //     },
-    //     Err(err) => RollResult {
-    //         success: false,
-    //         result: 0,
-    //         err: format!("{:?}", err),
-    //     },
-    // };
+    utils::set_panic_hook();
+
     let result: PipsResult<i32, String> = match parse(input) {
         Ok(expr) => PipsResult::Ok(expr.roll()),
         Err(err) => PipsResult::Err(format!("{:?}", err)),
@@ -55,17 +47,11 @@ pub fn roll(input: &str) -> JsValue {
 
 #[wasm_bindgen]
 pub fn plot(input: &str) -> JsValue {
-    let result: RollResult<HashMap<i32, i32>> = match parse(input) {
-        Ok(expr) => RollResult {
-            success: true,
-            result: expr.plot(),
-            err: "".to_string(),
-        },
-        Err(err) => RollResult {
-            success: false,
-            result: HashMap::new(),
-            err: format!("{:?}", err),
-        },
+    utils::set_panic_hook();
+
+    let result: PipsResult<HashMap<i32, i32>, String> = match parse(input) {
+        Ok(expr) => PipsResult::Ok(expr.plot()),
+        Err(err) => PipsResult::Err(format!("{:?}", err)),
     };
 
     JsValue::from_serde(&result).unwrap()

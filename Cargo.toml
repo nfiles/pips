@@ -16,4 +16,4 @@ members = [
 
 [dependencies]
 nom = "4.2.3"
-rand = "0.6.5"
+rand = { version = "0.6.5", features = ["wasm-bindgen"] }
