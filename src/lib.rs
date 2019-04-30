@@ -5,7 +5,6 @@ pub mod expression;
 pub mod operators;
 pub mod traits;
 
-pub mod parser;
+mod parser;
 
-// TODO: trim this down
-pub use parser::*;
+pub use parser::parse;
