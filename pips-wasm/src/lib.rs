@@ -14,15 +14,15 @@ mod utils;
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
 
-export interface Ok<T> { type: "Ok", result: T };
-export interface Err<T> { type: "Err", result: T };
+export interface Ok<T> { type: "Ok", result: T }
+export interface Err<T> { type: "Err", result: T }
 export type Result<T, E> = Ok<T> | Err<E>;
 
 /** parse and roll a dice expression */
 export function roll(input: string): Result<number, string>;
 
 /** parse and plot a dice expression */
-export function plot(input: string): Result<Record<number>, string>;
+export function plot(input: string): Result<Record<number, number>, string>;
 
 "#;
 
