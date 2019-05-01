@@ -94,7 +94,7 @@ pub fn less_than_or_equal_to(left: &i32, right: &i32) -> i32 {
 
 /// 1 if right is equal to left else 0
 pub fn equal_to(left: &i32, right: &i32) -> i32 {
-    if *left > *right {
+    if *left == *right {
         1
     } else {
         0
