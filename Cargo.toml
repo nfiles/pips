@@ -17,3 +17,7 @@ members = [
 [dependencies]
 nom = "4.2.3"
 rand = { version = "0.6.5", features = ["wasm-bindgen"] }
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
