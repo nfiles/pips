@@ -19,4 +19,4 @@ wasm-pack build pips-web
 cargo test --all
 ```
 
-For details on running the website, see [pips-web/README.md].
+For details on running the website, see (pips-web/README.md)[pips-web/README.md].
