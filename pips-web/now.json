@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "pips-web",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@now/static-build"
+    }
+  ]
+}

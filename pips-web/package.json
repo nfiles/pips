@@ -4,8 +4,10 @@
   "description": "web UI for graphing and evaluating dice roll expressions for TTRPGs",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server"
+    "build": "webpack --config webpack.config.js --mode production",
+    "start": "webpack-dev-server",
+    "now-build": "webpack --config webpack.config.js --mode production",
+    "now-dev": "webpack-dev-server --config webpack.config.js --port $PORT"
   },
   "repository": {
     "type": "git",
@@ -27,12 +29,13 @@
   },
   "homepage": "https://github.com/nfiles/pips#readme",
   "dependencies": {
-    "pips-wasm": "file:../pips-wasm/pkg"
+    "bootstrap": "^4.3.1",
+    "pips-wasm": "^0.1.0"
   },
   "devDependencies": {
+    "copy-webpack-plugin": "^5.0.0",
     "webpack": "^4.29.3",
     "webpack-cli": "^3.1.0",
-    "webpack-dev-server": "^3.1.5",
-    "copy-webpack-plugin": "^5.0.0"
+    "webpack-dev-server": "^3.1.5"
   }
 }
