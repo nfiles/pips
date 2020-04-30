@@ -14,5 +14,5 @@ import('pips-wasm')
     styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-    title = 'pips-ng';
+    title = 'pips-web';
 }
