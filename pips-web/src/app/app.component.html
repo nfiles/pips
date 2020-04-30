@@ -1,24 +1,29 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a href="/" class="navbar-brand">Pips Web</a>
-    <button class="navbar-toggler" type="button">
+    <a href="/" class="navbar-brand">Pips</a>
+    <button
+        class="navbar-toggler"
+        type="button"
+        (click)="isMenuCollapsed = !isMenuCollapsed"
+    >
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse">
+    <div [ngbCollapse]="isMenuCollapsed" class="collapse navbar-collapse">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-                <a href="#" class="nav-link">Analyzer</a>
+                <a
+                    routerLink="analyzer"
+                    routerLinkActive="active"
+                    class="nav-link"
+                    (click)="isMenuCollapsed = true"
+                >
+                    Analyzer
+                </a>
             </li>
         </ul>
     </div>
 </nav>
 
-<div class="page">
-    <div class="container">
-        <div class="text-center">
-            <h1 class="page-header">Pips dice roll analyzer</h1>
-        </div>
-
-        <router-outlet></router-outlet>
-    </div>
+<div class="container">
+    <router-outlet></router-outlet>
 </div>

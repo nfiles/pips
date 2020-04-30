@@ -1,0 +1,36 @@
+<form [formGroup]="form">
+    <div class="form-group">
+        <label for="expression">Expression</label>
+        <input
+            type="text"
+            id="expression"
+            formControlName="expression"
+            class="form-control"
+            autofocus
+            required
+        />
+    </div>
+
+    <div class="form-row align-items-center">
+        <div class="col">
+            <div class="btn-group">
+                <input
+                    class="btn btn-primary"
+                    type="submit"
+                    value="Roll"
+                    [disabled]="form.invalid"
+                    (click)="roll(form.value.expression)"
+                />
+                <input
+                    class="btn btn-secondary"
+                    type="button"
+                    value="Plot"
+                    [disabled]="form.invalid"
+                    (click)="onPlot.emit(form.value.expression)"
+                />
+            </div>
+        </div>
+
+        <label *ngIf="result" class="col-xs-2"> Roll: {{ result }} </label>
+    </div>
+</form>

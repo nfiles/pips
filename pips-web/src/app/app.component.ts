@@ -15,4 +15,5 @@ import('pips-wasm')
 })
 export class AppComponent {
     title = 'pips-web';
+    isMenuCollapsed = true;
 }
