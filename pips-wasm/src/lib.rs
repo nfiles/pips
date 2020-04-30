@@ -14,8 +14,8 @@ mod utils;
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
 
-export interface Ok<T> { type: "Ok", result: T }
-export interface Err<T> { type: "Err", result: T }
+export interface Ok<T> { type: "Ok", value: T }
+export interface Err<T> { type: "Err", value: T }
 export type Result<T, E> = Ok<T> | Err<E>;
 
 /** parse and roll a dice expression */
@@ -27,7 +27,7 @@ export function plot(input: string): Result<Record<number, number>, string>;
 "#;
 
 #[derive(Serialize, Deserialize)]
-#[serde(tag = "type", content = "result")]
+#[serde(tag = "type", content = "value")]
 pub enum PipsResult<R, E> {
     Ok(R),
     Err(E),
