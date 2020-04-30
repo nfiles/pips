@@ -1,8 +1,8 @@
 <div *ngIf="result">
     <div *ngIf="result.type === 'Err'">
-        <p>Error: {{ result.result }}</p>
+        <p>Error: {{ result.value }}</p>
     </div>
     <div *ngIf="result.type === 'Ok'">
-        <pre class="well">{{ result.result | json }}</pre>
+        <pre class="well">{{ result.value | json }}</pre>
     </div>
 </div>

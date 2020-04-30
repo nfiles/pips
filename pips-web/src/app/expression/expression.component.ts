@@ -61,6 +61,6 @@ export class ExpressionComponent implements OnInit, OnDestroy {
     async roll(expression: string) {
         this.result = '...';
         const result = await this._pipsService.roll(expression);
-        this.result = String(result.result);
+        this.result = String(result.value);
     }
 }

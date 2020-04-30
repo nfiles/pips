@@ -10,14 +10,16 @@ import { Result } from 'pips-wasm';
 export class ChartComponent implements OnChanges {
     @Input() expression: string;
 
-    result: Result<any, string>;
+    result: Result<Record<number, number>, string>;
 
     constructor(private _pipsService: PipsService) {}
 
     async ngOnChanges(changes: SimpleChanges) {
         if (changes['expression']) {
             this.result = null;
-            this.result = await this._pipsService.plot(this.expression);
+            if (this.expression) {
+                this.result = await this._pipsService.plot(this.expression);
+            }
         }
     }
 }
