@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { ReactiveFormsModule } from '@angular/forms';
+import { HighchartsChartModule } from 'highcharts-angular';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -16,7 +17,13 @@ import { AnalyzerComponent } from './analyzer/analyzer.component';
         ExpressionComponent,
         AnalyzerComponent,
     ],
-    imports: [BrowserModule, AppRoutingModule, NgbModule, ReactiveFormsModule],
+    imports: [
+        BrowserModule,
+        AppRoutingModule,
+        NgbModule,
+        ReactiveFormsModule,
+        HighchartsChartModule,
+    ],
     providers: [],
     bootstrap: [AppComponent],
 })

@@ -41,8 +41,10 @@ export class ExpressionComponent implements OnInit, OnDestroy {
                 filter((evt) => evt.keyCode === 13 || evt.keyCode === 10),
                 filter((_) => this.form.valid),
             )
-            .subscribe((_) => {
+            .subscribe(async (_) => {
                 this.onPlot.emit(this.form.value.expression);
+                await new Promise((resolve) => setTimeout(resolve));
+                this.form.patchValue({ expression: '' });
             });
 
         this.form.valueChanges
