@@ -13,7 +13,7 @@ Project for analyzing dice roll formulas in TTRPGs.
 ```sh
 # Build
 cargo build --all
-wasm-pack build pips-web
+wasm-pack build pips-wasm
 
 # Test
 cargo test --all

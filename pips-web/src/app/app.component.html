@@ -1,0 +1,31 @@
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+    <a href="/" class="navbar-brand">Pips</a>
+    <button
+        class="navbar-toggler"
+        type="button"
+        (click)="isMenuCollapsed = !isMenuCollapsed"
+    >
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div [ngbCollapse]="isMenuCollapsed" class="collapse navbar-collapse">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a
+                    routerLink="analyzer"
+                    routerLinkActive="active"
+                    class="nav-link"
+                    (click)="isMenuCollapsed = true"
+                >
+                    Analyzer
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container-xl">
+    <h1>{{ routerOutlet?.activatedRouteData?.title || '' }}</h1>
+
+    <router-outlet #routerOutlet="outlet"></router-outlet>
+</div>
