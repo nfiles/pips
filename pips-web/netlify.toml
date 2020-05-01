@@ -2,3 +2,8 @@
   base = "pips-web/"
   publish = "dist/pips-web/"
   command = "npm run build:prod"
+
+[[redirects]]
+  from = "/*"
+  to = "/"
+  status = 200
