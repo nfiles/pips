@@ -1,18 +1,18 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { AnalyzerComponent } from './analyzer/analyzer.component';
+import { VisualizerComponent } from './visualizer/visualizer.component';
 import { RouteData } from './route-data.model';
 
 const routes: Routes = [
     {
-        component: AnalyzerComponent,
-        path: 'analyzer',
-        data: { title: 'Analyzer' } as RouteData,
+        component: VisualizerComponent,
+        path: 'visualizer',
+        data: { title: 'Visualizer' } as RouteData,
     },
     {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'analyzer',
+        redirectTo: 'visualizer',
     },
 ];
 

@@ -1,5 +1,8 @@
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
-    <a href="/" class="navbar-brand">Pips</a>
+    <a href="/" class="navbar-brand">
+        <i class="fas fa-dice-d20"></i>
+        Pips
+    </a>
     <button
         class="navbar-toggler"
         type="button"
@@ -12,12 +15,23 @@
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
                 <a
-                    routerLink="analyzer"
+                    routerLink="visualizer"
                     routerLinkActive="active"
                     class="nav-link"
                     (click)="isMenuCollapsed = true"
                 >
-                    Analyzer
+                    Visualizer
+                </a>
+            </li>
+        </ul>
+
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a href="https://github.com/nfiles/pips" class="nav-link">
+                    <i class="fab fa-github"></i>
+                    <span class="d-sm-none">
+                        GitHub
+                    </span>
                 </a>
             </li>
         </ul>
