@@ -1,4 +1,4 @@
 [build]
   base = "pips-web/"
-  publish = "pips-web/dist/pips-web/"
+  publish = "dist/pips-web/"
   command = "npm run build:prod"
