@@ -6,6 +6,7 @@ import {
     ElementRef,
     OnDestroy,
     Input,
+    ViewChild,
 } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { fromEvent, Subject } from 'rxjs';
@@ -19,6 +20,8 @@ import { PipsService } from '../pips.service';
     styleUrls: ['./expression-list.component.scss'],
 })
 export class ExpressionComponent implements OnInit, OnDestroy {
+    @ViewChild('expression') expressionElem: ElementRef<HTMLInputElement>;
+
     @Input() expressions: string[];
     @Output() expressionsChange = new EventEmitter<string[]>();
 
@@ -43,10 +46,7 @@ export class ExpressionComponent implements OnInit, OnDestroy {
                 filter((evt) => evt.keyCode === 13 || evt.keyCode === 10),
                 filter((_) => this.form.valid),
             )
-            .subscribe(async (_) => {
-                this.addExpression(this.form.value.expression);
-                this.form.patchValue({ expression: '' });
-            });
+            .subscribe((_) => this.addExpression(this.form.value.expression));
 
         this.form.valueChanges
             .pipe(takeUntil(this._isDestroyed))
@@ -67,6 +67,9 @@ export class ExpressionComponent implements OnInit, OnDestroy {
     }
 
     addExpression(expression: string) {
+        this.form.patchValue({ expression: '' });
+        this.expressionElem.nativeElement.focus();
+
         if (this.expressions.some((ex) => expression === ex)) {
             return;
         }

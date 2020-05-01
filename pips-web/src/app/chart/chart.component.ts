@@ -98,7 +98,12 @@ export class ChartComponent implements OnChanges {
                         .map(Number)
                         .filter((x) => !isNaN(x))
                         .sort((a, b) => a - b)
-                        .map((x) => [x, (result.values[x] / total) * 100]),
+                        .map((x) => [
+                            x,
+                            // round to the nearest .00
+                            Math.round((result.values[x] / total) * 10000) /
+                                100,
+                        ]),
                 };
             },
         );
@@ -113,9 +118,9 @@ export class ChartComponent implements OnChanges {
                 title: { text: 'Outcome' },
             },
             yAxis: {
-                title: { text: 'Likelihood (%)' },
+                title: { text: '' },
                 labels: {
-                    formatter: function () {
+                    formatter() {
                         return `${this.value}%`;
                     },
                 },

@@ -1,51 +1,67 @@
 <form [formGroup]="form">
     <div class="form-group">
-        <label for="expression">Expression</label>
-        <input
-            type="text"
-            id="expression"
-            formControlName="expression"
-            class="form-control"
-            autofocus
-            required
-            placeholder="d20 + 5"
-        />
-    </div>
-
-    <div class="form-group form-row align-items-center">
-        <div class="col">
-            <div class="btn-group">
-                <input
+        <div class="input-group">
+            <input
+                #expression
+                type="text"
+                id="expression"
+                formControlName="expression"
+                class="form-control"
+                autofocus
+                required
+                placeholder="adv(d20) + 5"
+                autocomplete="off"
+            />
+            <div class="input-group-append">
+                <button
                     class="btn btn-primary"
                     type="submit"
                     value="Roll"
                     [disabled]="form.invalid"
                     (click)="roll(form.value.expression)"
-                />
-                <input
+                >
+                    Roll
+                </button>
+                <button
                     class="btn btn-secondary"
                     type="button"
                     value="Plot"
                     [disabled]="form.invalid"
                     (click)="addExpression(form.value.expression)"
-                />
+                >
+                    Plot
+                </button>
             </div>
         </div>
-
-        <label *ngIf="result" class="col-xs-2"> Roll: {{ result }} </label>
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="form-text text-success">
+                <ng-container *ngIf="result"> Roll: {{ result }} </ng-container>
+            </small>
+            <small class="form-text text-muted">
+                [Enter]: Roll [Ctrl+Enter]: Plot
+            </small>
+        </div>
     </div>
 </form>
 
-<div class="card" *ngIf="expressions?.length > 0">
+<div class="card">
     <div class="card-header">
         <div class="d-flex justify-content-between align-items-center">
             Expressions
-            <button class="btn btn-danger btn-sm" (click)="clear()">
+            <button
+                class="btn btn-danger btn-sm"
+                (click)="clear()"
+                [class.invisible]="!expressions || expressions.length === 0"
+            >
                 Clear
             </button>
         </div>
     </div>
-    <ul class="list-group list-group-flush">
+
+    <ul
+        class="list-group list-group-flush"
+        *ngIf="expressions?.length > 0; else noData"
+    >
         <li
             *ngFor="let expression of expressions"
             class="list-group-item d-flex justify-content-between align-items-center"
@@ -60,4 +76,10 @@
             </button>
         </li>
     </ul>
+
+    <ng-template #noData>
+        <div class="card-body text-center">
+            <div class="card-text text-muted">No expressions</div>
+        </div>
+    </ng-template>
 </div>

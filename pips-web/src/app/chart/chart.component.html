@@ -6,11 +6,24 @@
     {{ error }}
 </ngb-alert>
 
-<highcharts-chart
-    *ngIf="expressions.length > 0"
-    style="height: 500px; width: 100%;"
-    [Highcharts]="Highcharts"
-    constructorType="chart"
-    [options]="options"
-    [oneToOne]="true"
-></highcharts-chart>
+<div class="card">
+    <div class="card-header">Likelihood of possible outcomes</div>
+    <div class="card-body">
+        <highcharts-chart
+            #chart
+            *ngIf="expressions?.length > 0; else noData"
+            style="height: 500px;"
+            class="d-block"
+            [Highcharts]="Highcharts"
+            constructorType="chart"
+            [options]="options"
+            [oneToOne]="true"
+        ></highcharts-chart>
+
+        <ng-template #noData>
+            <div class="card-text text-center text-muted">
+                No expressions
+            </div>
+        </ng-template>
+    </div>
+</div>
