@@ -5,6 +5,7 @@ import {
     OnInit,
     ElementRef,
     OnDestroy,
+    Input,
 } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { fromEvent, Subject } from 'rxjs';
@@ -13,12 +14,13 @@ import { takeUntil, filter } from 'rxjs/operators';
 import { PipsService } from '../pips.service';
 
 @Component({
-    selector: 'app-expression',
-    templateUrl: './expression.component.html',
-    styleUrls: ['./expression.component.scss'],
+    selector: 'app-expression-list',
+    templateUrl: './expression-list.component.html',
+    styleUrls: ['./expression-list.component.scss'],
 })
 export class ExpressionComponent implements OnInit, OnDestroy {
-    @Output() onPlot = new EventEmitter<string>();
+    @Input() expressions: string[];
+    @Output() expressionsChange = new EventEmitter<string[]>();
 
     form = new FormGroup({
         expression: new FormControl(''),
@@ -42,15 +44,13 @@ export class ExpressionComponent implements OnInit, OnDestroy {
                 filter((_) => this.form.valid),
             )
             .subscribe(async (_) => {
-                this.onPlot.emit(this.form.value.expression);
-                await new Promise((resolve) => setTimeout(resolve));
+                this.addExpression(this.form.value.expression);
                 this.form.patchValue({ expression: '' });
             });
 
         this.form.valueChanges
             .pipe(takeUntil(this._isDestroyed))
             .subscribe((_) => {
-                this.onPlot.emit(null);
                 this.result = '';
             });
     }
@@ -64,5 +64,23 @@ export class ExpressionComponent implements OnInit, OnDestroy {
         this.result = '...';
         const result = await this._pipsService.roll(expression);
         this.result = String(result.value);
+    }
+
+    addExpression(expression: string) {
+        if (this.expressions.some((ex) => expression === ex)) {
+            return;
+        }
+
+        this.expressionsChange.emit([...(this.expressions || []), expression]);
+    }
+
+    remove(expression: string) {
+        this.expressionsChange.emit(
+            this.expressions.filter((ex) => ex !== expression),
+        );
+    }
+
+    clear() {
+        this.expressionsChange.emit([]);
     }
 }

@@ -6,5 +6,5 @@ import { Component } from '@angular/core';
     styleUrls: ['./analyzer.component.scss'],
 })
 export class AnalyzerComponent {
-    expression: string;
+    expressions: string[] = [];
 }

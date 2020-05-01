@@ -7,7 +7,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ChartComponent } from './chart/chart.component';
-import { ExpressionComponent } from './expression/expression.component';
+import { ExpressionComponent } from './expression-list/expression-list.component';
 import { AnalyzerComponent } from './analyzer/analyzer.component';
 
 @NgModule({

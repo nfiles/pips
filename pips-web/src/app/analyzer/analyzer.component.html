@@ -1,3 +1,11 @@
-<app-expression (onPlot)="expression = $event"></app-expression>
+<div class="row">
+    <div class="col-sm-5 col-md-4">
+        <app-expression-list
+            [(expressions)]="expressions"
+        ></app-expression-list>
+    </div>
 
-<app-chart [expression]="expression"></app-chart>
+    <div class="col-sm-7 col-md-8">
+        <app-chart [(expressions)]="expressions"></app-chart>
+    </div>
+</div>

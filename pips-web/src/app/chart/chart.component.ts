@@ -1,9 +1,16 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+    Component,
+    Input,
+    OnChanges,
+    SimpleChanges,
+    Output,
+    EventEmitter,
+} from '@angular/core';
 import * as Highcharts from 'highcharts';
 
 import { PipsService } from '../pips.service';
 
-export interface Expression {
+export interface ExpressionResult {
     expression: string;
     values: Record<number, number>;
 }
@@ -14,96 +21,84 @@ export interface Expression {
     styleUrls: ['./chart.component.scss'],
 })
 export class ChartComponent implements OnChanges {
-    @Input() expression: string;
+    @Input() expressions: string[];
+    @Output() expressionsChange = new EventEmitter<string[]>();
 
     Highcharts = Highcharts;
     options: Highcharts.Options;
 
-    expressions: Expression[] = [];
-
-    xMin = 0;
-    xMax = 0;
-
-    error: string;
+    errors: string[] = [];
 
     constructor(private _pipsService: PipsService) {}
 
     async ngOnChanges(changes: SimpleChanges) {
-        if (changes['expression']) {
-            this.error = null;
-
-            if (this.expression) {
-                this.plotExpression(this.expression);
-            }
+        if (changes['expressions']) {
+            this.updateChart();
         }
     }
 
-    async plotExpression(expression: string) {
-        // skip if it's already plotted
-        if (this.expressions.some((ex) => expression === ex.expression)) {
-            return;
-        }
-
+    async plotExpression(expression: string): Promise<ExpressionResult> {
         const result = await this._pipsService.plot(expression);
 
         if (result.type !== 'Ok') {
-            this.error = result.value;
+            this.errors = [...this.errors, result.value];
+            throw new Error(result.value);
+        }
+
+        return {
+            values: result.value,
+            expression,
+        };
+    }
+
+    removeError(index: number) {
+        this.errors.splice(index, 1);
+        this.errors = this.errors.slice();
+    }
+
+    async updateChart() {
+        const results$ = this.expressions.map(async (expr) => {
+            try {
+                return await this.plotExpression(expr);
+            } catch (err) {
+                this.expressionsChange.emit(
+                    this.expressions.filter((ex) => ex !== expr),
+                );
+                console.error(err);
+                throw err;
+            }
+        });
+
+        let results: ExpressionResult[];
+        try {
+            results = await Promise.all(results$);
+        } catch (err) {
             return;
         }
 
-        this.addSeries({
-            values: result.value,
-            expression,
-        });
-    }
-
-    addSeries(expression: Expression) {
-        const newXValues = Object.keys(expression.values)
-            .map(Number)
-            .filter((x) => !isNaN(x));
-
-        this.xMin = Math.min(...newXValues, this.xMin);
-        this.xMax = Math.max(...newXValues, this.xMax);
-
-        this.expressions = [...this.expressions, expression];
-
-        this.updateChart();
-    }
-
-    removeSeries(expression: Expression) {
-        this.expressions = this.expressions.filter((ex) => ex !== expression);
-
-        const xValues = this.expressions
-            .map((expr) => Object.keys(expr.values))
+        const xValues = results
+            .map((result) => Object.keys(result.values))
             .reduce((all, some) => all.concat(some), [])
             .map(Number)
             .filter((x) => !isNaN(x));
 
-        this.xMin = Math.min(...xValues);
-        this.xMax = Math.max(...xValues);
+        const xMin = Math.min(...xValues);
+        const xMax = Math.max(...xValues);
 
-        this.updateChart();
-    }
-
-    clearSeries() {
-        this.xMin = 0;
-        this.xMax = 0;
-        this.expressions = [];
-
-        this.updateChart();
-    }
-
-    updateChart() {
-        const series = this.expressions.map(
-            (expr): Highcharts.SeriesLineOptions => {
+        const series = results.map(
+            (result): Highcharts.SeriesLineOptions => {
+                const total = Object.values(result.values).reduce(
+                    (sum, x) => sum + x,
+                    0,
+                );
                 return {
                     type: 'line',
-                    name: expr.expression,
-                    data: Object.keys(expr.values)
+                    name: result.expression,
+                    data: Object.keys(result.values)
                         .map(Number)
                         .filter((x) => !isNaN(x))
                         .sort((a, b) => a - b)
-                        .map((x) => [x, expr.values[x]]),
+                        .map((x) => [x, (result.values[x] / total) * 100]),
                 };
             },
         );
@@ -113,8 +108,17 @@ export class ChartComponent implements OnChanges {
             series: series,
             xAxis: {
                 allowDecimals: false,
-                min: this.xMin,
-                max: this.xMax,
+                min: xMin,
+                max: xMax,
+                title: { text: 'Outcome' },
+            },
+            yAxis: {
+                title: { text: 'Likelihood (%)' },
+                labels: {
+                    formatter: function () {
+                        return `${this.value}%`;
+                    },
+                },
             },
         };
     }
