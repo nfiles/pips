@@ -11,12 +11,14 @@ Project for analyzing dice roll formulas in TTRPGs.
 ## Usage
 
 ```sh
-# Build
+# Build pips
 cargo build --all
-wasm-pack build pips-wasm
 
 # Test
 cargo test --all
+
+# Build pips-wasm
+./build-wasm.sh
 ```
 
 For details on running the website, see [pips-web/README.md](pips-web/README.md).
