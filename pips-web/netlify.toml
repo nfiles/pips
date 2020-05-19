@@ -11,4 +11,4 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    headers = { X-Clacks-Overhead = "GNU Terry Pratchett" }
+    X-Clacks-Overhead = "GNU Terry Pratchett"
