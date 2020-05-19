@@ -7,3 +7,4 @@
   from = "/*"
   to = "/"
   status = 200
+  headers = { X-Clacks-Overhead = "GNU Terry Pratchett" }
