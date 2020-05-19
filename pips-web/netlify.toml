@@ -7,4 +7,8 @@
   from = "/*"
   to = "/"
   status = 200
-  headers = { X-Clacks-Overhead = "GNU Terry Pratchett" }
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    headers = { X-Clacks-Overhead = "GNU Terry Pratchett" }
