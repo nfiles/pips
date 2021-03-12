@@ -1,9 +1,9 @@
 {
   "name": "pips-web",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --host 0.0.0.0",
     "build": "ng build",
     "build:prod": "ng build --prod --aot --no-progress",
     "test": "ng test",
@@ -28,7 +28,7 @@
     "core-js": "^3.6.5",
     "highcharts": "^8.0.4",
     "highcharts-angular": "^2.4.0",
-    "pips-wasm": "^0.2.1",
+    "pips-wasm": "file:../pips-wasm/pkg",
     "rxjs": "~6.5.5",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"

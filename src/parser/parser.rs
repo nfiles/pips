@@ -138,7 +138,6 @@ named!(
     )
 );
 
-/// recursive parser that starts the order of operations
 named!(
     parse_expression<CompleteStr, Expression>,
     alt_complete!(
@@ -147,7 +146,6 @@ named!(
     )
 );
 
-/// root parser that consumes entire input including trailing whitespace
 named!(
     parse_full_expression<CompleteStr, Expression>,
     do_parse!(

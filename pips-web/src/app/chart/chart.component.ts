@@ -7,13 +7,14 @@ import {
     EventEmitter,
 } from '@angular/core';
 import * as Highcharts from 'highcharts';
+import { PlotResult } from 'pips-wasm';
 
 import { PipsService } from '../pips.service';
 import { Round } from '../../utilities/numbers';
 
 export interface ExpressionResult {
     expression: string;
-    values: Record<number, number>;
+    values: PlotResult;
 }
 
 @Component({
@@ -47,7 +48,7 @@ export class ChartComponent implements OnChanges {
         }
 
         return {
-            values: result.value,
+            values: result.value.plot,
             expression,
         };
     }
@@ -87,22 +88,13 @@ export class ChartComponent implements OnChanges {
         const xMax = Math.max(...xValues);
 
         const allData = results.map((result) => {
-            const total = Object.values(result.values).reduce(
-                (sum, x) => sum + x,
-                0,
-            );
             return {
                 result,
                 points: Object.keys(result.values)
                     .map(Number)
                     .filter((x) => !isNaN(x))
                     .sort((a, b) => a - b)
-                    .map<[number, number]>((x) => [
-                        x,
-                        // normalize the y value
-                        result.values[x] / total,
-                    ]),
-                total: total,
+                    .map<[number, number]>((x) => [x, result.values[x]]),
             };
         });
 
@@ -111,7 +103,7 @@ export class ChartComponent implements OnChanges {
                 return {
                     type: 'line',
                     name: result.expression,
-                    data: points.map(([x, y]) => [x, Round(y * 100, 2)]),
+                    data: points.map(([x, y]) => [x, Round(y * 100, 3)]),
                 };
             },
         );

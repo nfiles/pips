@@ -1,5 +1,8 @@
 //! Expression Module
 
+use crate::traits::PlotResult;
+use crate::traits::PlotTable;
+use crate::traits::RollResult;
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -67,13 +70,13 @@ impl Expression {
 
 impl Rollable for Expression {
     /// Get a single value from the roll expression
-    fn roll(&self) -> i32 {
+    fn roll(&self) -> RollResult {
         // get the root cases out of the way
         if let Constant(num) = self {
             return *num;
         }
         if let Die(max) = self {
-            return rand::thread_rng().gen_range(1, *max as i32 + 1);
+            return rand::thread_rng().gen_range(1, *max as RollResult + 1);
         }
 
         let (operator, left, right) = self
@@ -84,13 +87,22 @@ impl Rollable for Expression {
     }
 
     /// Create a list of all possible outcomes and their possibility
-    fn plot(&self) -> HashMap<i32, i32> {
+    fn plot(&self) -> PlotResult {
         // get the root cases out of the way
         if let Constant(num) = self {
-            return [(*num, 1)].iter().cloned().collect();
+            return PlotResult {
+                total: 1.0,
+                plot: [(*num, 1.0)].iter().cloned().collect(),
+            };
         }
         if let Die(num) = self {
-            return (1..num + 1).map(|i| (i as i32, 1)).collect();
+            let total = *num as f32;
+            return PlotResult {
+                total,
+                plot: (1..num + 1)
+                    .map(|i| (i as RollResult, 1.0 / total))
+                    .collect(),
+            };
         }
 
         // handle the more complicated expressions
@@ -101,27 +113,60 @@ impl Rollable for Expression {
         let left = left.plot();
         let right = right.plot();
 
-        let mut product: HashMap<i32, i32> = HashMap::new();
+        let mut product: PlotTable = HashMap::new();
 
-        left.iter()
-            .flat_map(|(left_value, left_count)| {
-                right.iter().map(move |(right_value, right_count)| {
+        left.plot
+            .iter()
+            .flat_map(|(left_value, left_chance)| {
+                right.plot.iter().map(move |(right_value, right_chance)| {
                     let value = (operator)(left_value, right_value);
-                    (value, left_count * right_count)
+                    (value, left_chance * right_chance)
                 })
             })
             .for_each(|(value, count)| {
-                *product.entry(value).or_insert(0) += count;
+                *product.entry(value).or_insert(0.0) += count;
             });
 
-        product
+        PlotResult {
+            total: left.total * right.total,
+            plot: product,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
+
+    impl PlotResult {
+        /// de-normalize the table of possible outcomes
+        pub fn simplify(&self) -> HashMap<i32, i32> {
+            self.plot
+                .iter()
+                .map(|(value, chance)| {
+                    let outcomes = (chance * self.total) as i32;
+                    (*value, outcomes)
+                })
+                .collect()
+        }
+    }
+
+    #[test]
+    fn simplify_produces_correct_table() {
+        let plot_result = PlotResult {
+            total: 10.0,
+            plot: [(1, 0.1), (2, 0.2), (3, 0.3), (4, 0.4)]
+                .iter()
+                .cloned()
+                .collect(),
+        };
+        let expected: HashMap<i32, i32> =
+            [(1, 1), (2, 2), (3, 3), (4, 4)].iter().cloned().collect();
+
+        let actual = plot_result.simplify();
+
+        assert_eq!(expected, actual);
+    }
 
     #[test]
     fn multiply_produces_correct_plot() {
@@ -142,7 +187,7 @@ mod tests {
         .cloned()
         .collect();
 
-        let actual = expression.plot();
+        let actual = expression.plot().simplify();
 
         assert_eq!(expected, actual);
     }
@@ -172,7 +217,7 @@ mod tests {
             .cloned()
             .collect();
 
-        let actual = expression.plot();
+        let actual = expression.plot().simplify();
 
         assert_eq!(expected, actual);
     }
@@ -198,7 +243,7 @@ mod tests {
         .cloned()
         .collect();
 
-        let actual = expression.plot();
+        let actual = expression.plot().simplify();
 
         assert_eq!(expected, actual);
     }
@@ -229,7 +274,7 @@ mod tests {
                 .cloned()
                 .collect();
 
-        let actual = expression.plot();
+        let actual = expression.plot().simplify();
 
         assert_eq!(expected, actual);
     }
@@ -256,7 +301,7 @@ mod tests {
         let expected: HashMap<i32, i32> =
             [(1, 1), (2, 3), (3, 5), (4, 7)].iter().cloned().collect();
 
-        let actual = expression.plot();
+        let actual = expression.plot().simplify();
 
         assert_eq!(expected, actual);
     }
@@ -283,7 +328,7 @@ mod tests {
         let expected: HashMap<i32, i32> =
             [(1, 7), (2, 5), (3, 3), (4, 1)].iter().cloned().collect();
 
-        let actual = expression.plot();
+        let actual = expression.plot().simplify();
 
         assert_eq!(expected, actual);
     }
@@ -305,7 +350,7 @@ mod tests {
         // 2 3 -> 0
         let expected: HashMap<i32, i32> = [(-1, 3), (0, 2), (1, 1)].iter().cloned().collect();
 
-        let actual = expression.plot();
+        let actual = expression.plot().simplify();
 
         assert_eq!(expected, actual);
     }
@@ -339,7 +384,7 @@ mod tests {
             );
 
             let expected: HashMap<i32, i32> = options.iter().cloned().collect();
-            let actual = expression.plot();
+            let actual = expression.plot().simplify();
 
             assert_eq!(expected, actual, "{:?}", comparison);
         }

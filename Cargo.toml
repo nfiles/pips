@@ -1,6 +1,6 @@
 [package]
 name = "pips"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Nathan Files <nathanwfiles@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/nfiles/pips"
@@ -17,6 +17,8 @@ members = [
 [dependencies]
 nom = "4.2.3"
 rand = { version = "0.6.5", features = ["wasm-bindgen"] }
+serde = "1.0.90"
+serde_derive = "1.0.90"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.
