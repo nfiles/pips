@@ -1,6 +1,6 @@
 {
   "name": "pips-web",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0",
@@ -28,7 +28,7 @@
     "core-js": "^3.6.5",
     "highcharts": "^8.0.4",
     "highcharts-angular": "^2.4.0",
-    "pips-wasm": "^0.2.2",
+    "pips-wasm": "^0.2.5",
     "rxjs": "~6.5.5",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"
