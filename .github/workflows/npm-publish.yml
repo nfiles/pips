@@ -36,7 +36,6 @@ jobs:
       # build the wasm package
       - name: Build wasm package
         run: ./build-wasm.sh
-        working-directory: pips-wasm/pkg
         
       - name: Publish npm package
         uses: JS-DevTools/npm-publish@v1
