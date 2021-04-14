@@ -2,7 +2,7 @@ name: Cargo Publish
 
 on:
   push:
-    tag:
+    tags:
       - "v*"
 
 jobs:
