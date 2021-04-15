@@ -2,5 +2,6 @@ sign-commit = true
 sign-tag = true
 disable-push = true
 disable-publish = true
+no-dev-version = true
 tag-name = "{{crate_name}}-v{{version}}"
 pre-release-commit-message = "chore({{crate_name}}): Release {{version}}"
