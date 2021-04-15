@@ -20,7 +20,12 @@ jobs:
         run: cargo build --all --verbose
       - name: Run tests
         run: cargo test --verbose
-      - uses: katyo/publish-crates@v1
-        with:
-          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          args: --no-verify
+      - name: Cargo publish
+        run: |
+          cargo publish \
+            --token ${{ secrets.CARGO_REGISTRY_TOKEN }} \
+            --manifest-path ./Cargo.toml
+      # - uses: katyo/publish-crates@v1
+      #   with:
+      #     registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      #     args: --no-verify
