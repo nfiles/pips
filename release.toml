@@ -10,4 +10,4 @@ pre-release-replacements = [
   # {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}"},
   # {file="CHANGELOG.md", search="<!-- next-header -->", replace="<!-- next-header -->\n\n## [Unreleased] - ReleaseDate"},
 ]
-exclude-paths = ["/docs/**", "/README.md", "/tests/**", "/.travis.yml"]
+# exclude-paths = ["/docs/**", "/README.md", "/tests/**", "/.travis.yml"]
