@@ -15,7 +15,7 @@ Project for analyzing dice roll formulas in TTRPGs.
 cargo build --all
 
 # Test
-cargo test --all
+cargo test
 
 # Build pips-wasm
 ./build-wasm.sh
