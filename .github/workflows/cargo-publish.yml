@@ -2,7 +2,6 @@ name: Cargo Publish
 
 on:
   push:
-    branches: [master]
     tags:
       - "pips-v*"
 
