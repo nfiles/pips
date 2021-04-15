@@ -5,7 +5,7 @@ on:
     branches: [master]
     tags:
       - "v*"
-      - "!*alpha*"
+      - "!v*alpha*"
 
 jobs:
   build:
